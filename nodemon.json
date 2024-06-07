@@ -1,0 +1,5 @@
+{
+  "watch": ["server.js", "nuxt.config.js", "pages", "components", "plugins"],
+  "ignore": ["node_modules", "public", ".nuxt", "*.log"],
+  "ext": "js,vue"
+}
