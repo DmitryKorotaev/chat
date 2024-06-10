@@ -7,16 +7,44 @@ const app = express()
 const server = http.createServer(app)
 const io = new Server(server)
 
-io.on('connection', (socket) => {
-  console.log('IO connected')
+const m = (name, text, id) => ({
+  name,
+  text,
+  id,
+})
 
-  socket.on('message', (message) => {
-    console.log('Received message from client:', message)
-    io.emit('newMessage', { message: message + 'server' })
+io.on('connection', (socket) => {
+  // console.log('IO connected')
+
+  socket.on('userJoined', (data, cd) => {
+    if (!data.name || !data.room) {
+      return cd('data incorrect')
+    }
+    socket.join(data.room)
+    cd({ userId: socket.id })
+
+    socket.emit('newMessage', m('admin', `Добро пожаловать ${data.name}`))
+
+    socket.broadcast
+      .to(data.room)
+      .emit('newMessage', m('admin', `Пользователь ${data.name} зашел`))
+  })
+
+  socket.on('createMessage', (data, callback) => {
+    setTimeout(() => {
+      socket.emit('newMessage', {
+        text: data.text + 'Server',
+      })
+      callback({ status: 'OK', message: 'Message received and processed' })
+    }, 500)
+  })
+
+  socket.on('error', (error) => {
+    console.error('Socket error:', error)
   })
 
   socket.on('disconnect', () => {
-    console.log('Client disconnected')
+    console.log('Client disconnected', socket.id)
   })
 })
 

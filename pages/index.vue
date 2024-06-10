@@ -5,21 +5,6 @@
         <b-card-title class="title-card"> Nuxt чат </b-card-title>
         <div>
           <b-form @submit.prevent="onSubmit" @reset="onReset" v-if="show">
-            <!-- <b-form-group
-              id="input-group-1"
-              label="Email:"
-              label-for="input-1"
-              description="We'll never share your email with anyone else."
-            >
-              <b-form-input
-                id="input-1"
-                v-model="form.email"
-                type="email"
-                placeholder="Введите email"
-                required
-              ></b-form-input>
-            </b-form-group> -->
-
             <b-form-group id="input-group-2" label="Имя:" label-for="input-2">
               <b-form-input
                 id="input-2"
@@ -71,7 +56,6 @@ export default {
   data() {
     return {
       user: {
-        email: '',
         name: '',
         room: '',
         checked: [],
@@ -79,12 +63,33 @@ export default {
       show: true,
     }
   },
+  // ОСТАНОВИЛСЯ НА ПРОВЕРКЕ ВСТУПИТЕЛЬНОГО СООБЩЕНИЯ
   methods: {
     ...mapMutations(['setUser']),
 
     onSubmit() {
-      this.setUser(this.user), this.$router.push('/chat')
+      console.log('onSubmit')
+      if (this.$socket.connected) {
+        this.sendUserJoined()
+      } else {
+        this.$socket.once('connect', () => {
+          this.sendUserJoined()
+        })
+      }
     },
+
+    sendUserJoined() {
+      this.$socket.emit('userJoined', this.user, (data) => {
+        if (typeof data === 'string') {
+          console.log(data)
+        } else {
+          this.user.id = data.userId
+          this.setUser(this.user)
+          this.$router.push('/chat')
+        }
+      })
+    },
+
     onReset(event) {
       event.preventDefault()
       // Reset our form values
