@@ -6,9 +6,12 @@
         placeholder="Введите сообщение"
         outline
         @keydown.enter="send"
+        class="custom-input"
       ></b-form-input>
       <b-input-group-append>
-        <b-button type="submit" variant="primary">Отправить</b-button>
+        <b-button type="submit" class="svg-button">
+          <img src="/send-svgrepo-com.svg" alt="Отправить" class="svg-icon" />
+        </b-button>
       </b-input-group-append>
     </b-input-group>
   </b-form>
@@ -42,3 +45,29 @@ export default {
   },
 }
 </script>
+
+<style scoped>
+.custom-input::placeholder {
+  color: #898989;
+}
+.custom-input {
+  color: white;
+}
+.form-control {
+  background-color: #292929;
+  border-radius: 5px !important;
+  border: 1px solid #898989;
+}
+.btn {
+  padding: 0.175rem 0.75rem;
+}
+.btn-secondary,
+.btn-secondary:hover,
+.btn-secondary:focus,
+.btn-secondary:active {
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+</style>
+<!-- НУЖНО СДЕЛАТЬ ОТОБРАЖЕНИЕ СООБЩЕНИЙ !!!!!! -->

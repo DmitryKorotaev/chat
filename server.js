@@ -3,6 +3,9 @@ const http = require('http')
 const { Server } = require('socket.io')
 const { loadNuxt, build } = require('nuxt')
 
+const Users = require('./Users')
+const users = new Users()
+
 const app = express()
 const server = http.createServer(app)
 const io = new Server(server)
@@ -16,12 +19,21 @@ const m = (name, text, id) => ({
 io.on('connection', (socket) => {
   // console.log('IO connected')
 
+  //валидация
   socket.on('userJoined', (data, cd) => {
     if (!data.name || !data.room) {
-      return cd('data incorrect')
+      return cb('data incorrect')
     }
     socket.join(data.room)
-    cd({ userId: socket.id })
+
+    users.remove(socket.id)
+    //Добавляем пользователя в комнату
+    users.add({
+      id: socket.id,
+      name: data.name,
+      room: data.room,
+    })
+    cb({ userId: socket.id })
 
     socket.emit('newMessage', m('admin', `Добро пожаловать ${data.name}`))
 
@@ -30,13 +42,16 @@ io.on('connection', (socket) => {
       .emit('newMessage', m('admin', `Пользователь ${data.name} зашел`))
   })
 
-  socket.on('createMessage', (data, callback) => {
-    setTimeout(() => {
-      socket.emit('newMessage', {
-        text: data.text + 'Server',
-      })
-      callback({ status: 'OK', message: 'Message received and processed' })
-    }, 500)
+  socket.on('createMessage', (data, cb) => {
+    if (!data.text) {
+      return cd('the text cannot be empty')
+    }
+    // если пользователь найден, код отправляет новое сообщение в комнату пользователя
+    const user = users.get(data.id)
+    if (user) {
+      io.to(user.room).emit('newMessage', m(user.name, data.text, data.id))
+    }
+    cb({ status: 'OK', message: 'Message received and processed' })
   })
 
   socket.on('error', (error) => {

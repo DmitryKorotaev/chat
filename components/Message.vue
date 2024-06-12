@@ -28,7 +28,11 @@ export default {
 </script>
 <style scoped>
 .system {
+  color: white;
   margin-bottom: 1rem;
+}
+hr {
+  background-color: white;
 }
 .text {
   margin-bottom: 1rem;

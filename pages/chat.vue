@@ -7,24 +7,22 @@
           <b-icon icon="arrow-left" class="arrow1" @click="exit"> </b-icon>
           Чат комнаты {{ user.room }}
         </b-card-title>
-        <b-card class="chat-card">
-          <div class="chat-body">
-            <div class="chat">
-              <Message
-                v-for="m in messages"
-                :key="m.id"
-                :name="m.name"
-                :text="m.text"
-                owner
-              />
-            </div>
-          </div>
-        </b-card>
 
-        <div class="input-footer">
-          <ChatForm />
+        <div class="chat-body">
+          <div class="chat">
+            <Message
+              v-for="m in messages"
+              :key="m.text"
+              :name="m.name"
+              :text="m.text"
+              :owner="m.id === user.id"
+            />
+          </div>
         </div>
       </b-card>
+      <div class="input-footer">
+        <ChatForm />
+      </div>
     </b-col>
   </b-row>
 </template>
@@ -62,50 +60,42 @@ export default {
 <style scoped>
 .row,
 .chat-card {
-  background-color: #333232;
+  background-color: rgb(44, 45, 47);
+}
+.chat-title {
+  color: white;
+  font-size: 1.3rem;
+  flex: 0 0 auto; /* Не растягивается */
 }
 .chat-card {
-  display: flex;
   height: 100vh;
-  flex-direction: column;
   border: 0;
 }
-/* .chat-card {
-  height: 100%;
-  position: relative;
-  overflow: hidden;
-} */
+.chat-body {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto; /* Добавляем прокрутку, если содержимое чата превышает высоту */
+}
 .chat {
-  top: 0;
-  right: 0;
-  left: 0;
-  bottom: 80px;
   padding: 1rem;
   overflow-y: auto;
   border: 0;
 }
 .input-footer {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  margin-top: auto;
   padding: 1rem;
   height: 80px;
-  background: #212121;
+  background: #292929;
+  border-radius: 10px 10px 0 0;
+  position: sticky; /* Делаем поле ввода "липким" */
+  bottom: 0; /* Прикрепляем поле ввода к низу контейнера */
+  z-index: 10; /* Устанавливаем высокий z-index для гарантии, что поле ввода будет над содержимым */
 }
 
-.chat-title {
-  font-size: 1.3rem;
-  flex: 0 0 auto; /* Не растягивается */
-}
 .card-body {
   border: 0;
 }
 
-.chat-body {
-  flex: 1; /* Занимает доступное пространство */
-  overflow-y: auto; /* Добавляем прокрутку, если содержимое чата превышает высоту */
-}
 .arrow1 :hower {
   color: gray;
 }
