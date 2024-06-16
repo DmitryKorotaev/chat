@@ -9,7 +9,7 @@ const users = new Users()
 const app = express()
 const server = http.createServer(app)
 const io = new Server(server)
-
+const messages = []
 const m = (name, text, id) => ({
   name,
   text,
@@ -18,9 +18,10 @@ const m = (name, text, id) => ({
 
 io.on('connection', (socket) => {
   // console.log('IO connected')
+  socket.emit('loadMessages', messages)
 
   //валидация
-  socket.on('userJoined', (data, cd) => {
+  socket.on('userJoined', (data, cb) => {
     if (!data.name || !data.room) {
       return cb('data incorrect')
     }
@@ -33,8 +34,8 @@ io.on('connection', (socket) => {
       name: data.name,
       room: data.room,
     })
-    cb({ userId: socket.id })
-
+    cb({ userId: socket.id }) // Ответ обратно клиенту
+    io.to(data.room).emit('updateUsers', users.getByRoom(data.room))
     socket.emit('newMessage', m('admin', `Добро пожаловать ${data.name}`))
 
     socket.broadcast
@@ -49,6 +50,9 @@ io.on('connection', (socket) => {
     // если пользователь найден, код отправляет новое сообщение в комнату пользователя
     const user = users.get(data.id)
     if (user) {
+      const message = m(user.name, data.text, data.id)
+      messages.push(message)
+
       io.to(user.room).emit('newMessage', m(user.name, data.text, data.id))
     }
     cb({ status: 'OK', message: 'Message received and processed' })
@@ -58,7 +62,26 @@ io.on('connection', (socket) => {
     console.error('Socket error:', error)
   })
 
+  socket.on('userLeft', (id, cb) => {
+    const user = users.remove(id)
+    if (user) {
+      io.to(user.room).emit(
+        'newMessage',
+        m('admin', `Пользователь ${user.name} вышел.`)
+      )
+    }
+    cb()
+  })
+
   socket.on('disconnect', () => {
+    const user = users.remove(socket.id)
+    if (user) {
+      io.to(user.room).emit('updateUsers', users.getByRoom(user.room))
+      io.to(user.room).emit(
+        'newMessage',
+        m('admin', `Пользователь ${user.name} вышел.`)
+      )
+    }
     console.log('Client disconnected', socket.id)
   })
 })

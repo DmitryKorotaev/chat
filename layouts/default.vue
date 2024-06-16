@@ -17,5 +17,7 @@ export default {
 <style scoped>
 .container-fluid {
   height: 100%;
+  padding-right: 0px;
+  padding-left: 0px;
 }
 </style>

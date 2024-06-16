@@ -3,16 +3,16 @@
     <Room />
     <b-col sm="12" md="8" lg="8">
       <b-card class="chat-card">
-        <b-card-title class="chat-title">
+        <b-card-title class="chat-title" ref="chatTitle">
           <b-icon icon="arrow-left" class="arrow1" @click="exit"> </b-icon>
           Чат комнаты {{ user.room }}
         </b-card-title>
 
-        <div class="chat-body">
+        <div class="chat-body" @scroll="handleScroll">
           <div class="chat">
             <Message
-              v-for="m in messages"
-              :key="m.text"
+              v-for="(m, index) in messages"
+              :key="index"
               :name="m.name"
               :text="m.text"
               :owner="m.id === user.id"
@@ -44,42 +44,91 @@ export default {
   },
 
   mounted() {
-    console.log('User data:', this.user) // Проверяем наличие данных
+    this.$socket.on('loadMessages', (loadedMessages) => {
+      this.setMessages(loadedMessages)
+    })
+    console.log(this.user, 'User data')
     console.log(this.messages, 'messages state')
+
+    const savedUser = localStorage.getItem('user')
+
+    // this.$socket.emit('userJoined', JSON.parse(savedUser), (response) => {
+    //   if (response && response.userId) {
+    //     this.setUser({ ...JSON.parse(savedUser), id: response.userId })
+    //   }
+    // })
+    // ПРИ ОБНОВЛЕНИИ СТРАНИЦЫ ОСТАВЛЯТЬ ДАННЫЕ ..
+    const savedMessages = localStorage.getItem('messages')
+
+    if (savedUser) {
+      this.setUser(JSON.parse(savedUser))
+    }
+    if (savedMessages) {
+      this.setMessages(JSON.parse(savedMessages))
+    }
   },
+
+  watch: {
+    user: {
+      handler(newUser) {
+        //localStorage.setItem('key', value)
+        localStorage.setItem('user', JSON.stringify(newUser))
+      },
+      deep: true,
+    },
+    messages: {
+      handler(newMessages) {
+        localStorage.setItem('messages', JSON.stringify(newMessages))
+      },
+      deep: true,
+    },
+  },
+
   methods: {
-    ...mapMutations(['clearData']),
+    ...mapMutations(['clearData', 'setUser', 'setMessages']),
     exit() {
-      this.$router.push('/?message=left(chat)')
-      this.clearData()
+      this.$socket.emit('userLeft', this.user.id, () => {
+        this.$router.push('/?message=left(chat)')
+        this.clearData()
+        localStorage.removeItem('user')
+        localStorage.removeItem('messages')
+      })
+    },
+    handleScroll() {
+      const chatBody = this.$refs.chatTitle
+      const scrollTop = chatBody.scrollTop
+      if (scrollTop > 0) {
+        chatBody.style.padding = '0.5rem'
+      } else {
+        chatBody.style.padding = '1rem'
+      }
     },
   },
 }
 </script>
 
 <style scoped>
-.row,
-.chat-card {
-  background-color: rgb(44, 45, 47);
-}
 .chat-title {
   color: white;
   font-size: 1.3rem;
-  flex: 0 0 auto; /* Не растягивается */
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding: 1rem;
+  transition: padding 0.3s;
 }
 .chat-card {
-  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
   border: 0;
 }
 .chat-body {
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto; /* Добавляем прокрутку, если содержимое чата превышает высоту */
+  flex: 1;
+  overflow-y: auto;
 }
 .chat {
   padding: 1rem;
-  overflow-y: auto;
-  border: 0;
 }
 .input-footer {
   margin-top: auto;

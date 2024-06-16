@@ -10,14 +10,8 @@
           :key="u.id"
           class="d-flex align-items-center"
         >
-          <b-avatar
-            :src="u.avatar"
-            size="lg"
-            class="mr-3 custom-badge"
-            :badge="true"
-            :badge-variant="u.online ? 'success' : 'secondary'"
-          >
-          </b-avatar>
+          <!-- <b-avatar :src="u.avatar" size="lg" class="mr-3 custom-badge"> -->
+          <!-- </b-avatar> -->
           <div class="user-name">
             {{ u.name }}
           </div>
@@ -32,15 +26,9 @@ import { mapState } from 'vuex'
 
 export default {
   data() {
-    return {
-      users: [
-        { id: 1, name: 'Alice', avatar: 'path/to/alice.jpg', online: true },
-        { id: 2, name: 'Bob', avatar: 'path/to/bob.jpg', online: false },
-        { id: 3, name: 'Charlie', avatar: 'path/to/charlie.jpg', online: true },
-      ],
-    }
+    return {}
   },
-  computed: mapState(['user']),
+  computed: mapState(['user', 'users']),
   methods: {},
 }
 </script>

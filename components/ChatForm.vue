@@ -5,7 +5,6 @@
         v-model="text"
         placeholder="Введите сообщение"
         outline
-        @keydown.enter="send"
         class="custom-input"
       ></b-form-input>
       <b-input-group-append>
@@ -47,17 +46,17 @@ export default {
 </script>
 
 <style scoped>
-.custom-input::placeholder {
+/* .custom-input::placeholder {
   color: #898989;
-}
+} */
 .custom-input {
   color: white;
 }
-.form-control {
+/* .form-control {
   background-color: #292929;
   border-radius: 5px !important;
   border: 1px solid #898989;
-}
+} */
 .btn {
   padding: 0.175rem 0.75rem;
 }
@@ -70,4 +69,3 @@ export default {
   box-shadow: none !important;
 }
 </style>
-<!-- НУЖНО СДЕЛАТЬ ОТОБРАЖЕНИЕ СООБЩЕНИЙ !!!!!! -->
