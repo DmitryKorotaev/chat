@@ -27,20 +27,30 @@ io.on('connection', (socket) => {
     }
     socket.join(data.room)
 
-    users.remove(socket.id)
-    //Добавляем пользователя в комнату
-    users.add({
-      id: socket.id,
-      name: data.name,
-      room: data.room,
-    })
-    cb({ userId: socket.id }) // Ответ обратно клиенту
-    io.to(data.room).emit('updateUsers', users.getByRoom(data.room))
-    socket.emit('newMessage', m('admin', `Добро пожаловать ${data.name}`))
+    let userId = data.id || socket.id
+    const user = users.get(userId)
+    if (user) {
+      // Пользователь уже существует, просто обновляем его данные
+      user.name = data.name
+      user.room = data.room
+      console.log(userId, 'userId')
+    } else {
+      // users.remove(userId)
+      //Добавляем пользователя в комнату
+      users.add({
+        id: userId,
+        name: data.name,
+        room: data.room,
+      })
+      console.log(userId, 'Другой пользователь')
+      socket.emit('newMessage', m('admin', `Добро пожаловать ${data.name}`))
+      socket.broadcast
+        .to(data.room)
+        .emit('newMessage', m('admin', `Пользователь ${data.name} зашел`))
+    }
 
-    socket.broadcast
-      .to(data.room)
-      .emit('newMessage', m('admin', `Пользователь ${data.name} зашел`))
+    cb({ userId }) // Ответ обратно клиенту
+    io.to(data.room).emit('updateUsers', users.getByRoom(data.room))
   })
 
   socket.on('createMessage', (data, cb) => {

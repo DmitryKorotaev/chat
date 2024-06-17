@@ -33,7 +33,8 @@
 </template>
 
 <script>
-import { mapMutations } from 'vuex'
+import { mapMutations, mapState } from 'vuex'
+
 export default {
   head: {
     title: 'Добро пожаловать в Nuxt чат',
@@ -48,10 +49,30 @@ export default {
     }
   },
 
-  methods: {
-    ...mapMutations(['setUser']),
+  mounted() {
+    const savedUser = localStorage.getItem('user')
+    if (savedUser) {
+      this.$store.commit('setUser', JSON.parse(savedUser))
+      this.$router.push('/chat')
+    } else {
+      this.$router.push('/')
+    }
+  },
 
+  methods: {
     onSubmit() {
+      if (!this.user.name || !this.user.room) {
+        console.error('Введите имя и комнату')
+        return
+      }
+
+      if (this.$socket.connected) {
+        this.sendUserJoined()
+      } else {
+        this.$socket.once('connect', () => {
+          this.sendUserJoined()
+        })
+      }
       console.log('onSubmit')
       if (this.$socket.connected) {
         this.sendUserJoined()
@@ -65,10 +86,11 @@ export default {
     sendUserJoined() {
       this.$socket.emit('userJoined', this.user, (data) => {
         if (typeof data === 'string') {
-          console.log(data)
+          console.error(data)
         } else {
           this.user.id = data.userId
-          this.setUser(this.user)
+          this.$store.commit('setUser', this.user)
+          localStorage.setItem('user', JSON.stringify(this.user))
           this.$router.push('/chat')
         }
       })

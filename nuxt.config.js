@@ -46,6 +46,10 @@ export default {
       lang: 'en',
     },
   },
+  server: {
+    host: '0.0.0.0', // Слушать на всех сетевых интерфейсах
+    port: 3000, // Порт, на котором будет работать сервер
+  },
 
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {},

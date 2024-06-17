@@ -22,20 +22,33 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState, mapMutations } from 'vuex'
 
 export default {
   data() {
     return {}
   },
+
   computed: mapState(['user', 'users']),
-  methods: {},
+
+  mounted() {
+    const savedUser = localStorage.getItem('user')
+    if (savedUser) {
+      this.setUser(JSON.parse(savedUser))
+    }
+  },
+  methods: {
+    ...mapMutations(['setUser']),
+  },
 }
 </script>
 
 <style scoped>
 .room {
   background-color: rgb(33, 33, 33);
+}
+.card {
+  border: none !important;
 }
 .room-card {
   background-color: transparent;

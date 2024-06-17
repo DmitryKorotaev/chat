@@ -6,6 +6,7 @@
         placeholder="Введите сообщение"
         outline
         class="custom-input"
+        required
       ></b-form-input>
       <b-input-group-append>
         <b-button type="submit" class="svg-button">
@@ -40,6 +41,7 @@ export default {
           }
         }
       )
+      // остановился на предотвращении ошибки отправки пустого сообщений
     },
   },
 }

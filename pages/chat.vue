@@ -1,38 +1,38 @@
 <template>
-  <b-row>
-    <Room />
-    <b-col sm="12" md="8" lg="8">
-      <b-card class="chat-card">
-        <b-card-title class="chat-title" ref="chatTitle">
-          <b-icon icon="arrow-left" class="arrow1" @click="exit"> </b-icon>
-          Чат комнаты {{ user.room }}
-        </b-card-title>
+  <div v-if="loading" class="loading-screen">Loading...</div>
+  <div v-else>
+    <b-row>
+      <Room />
+      <b-col sm="12" md="8" lg="8">
+        <b-card class="chat-card">
+          <b-card-title class="chat-title" ref="chatTitle">
+            <b-icon icon="arrow-left" class="arrow1" @click="exit"> </b-icon>
+            Чат комнаты {{ user.room }}
+          </b-card-title>
 
-        <div class="chat-body" @scroll="handleScroll">
-          <div class="chat">
-            <Message
-              v-for="(m, index) in messages"
-              :key="index"
-              :name="m.name"
-              :text="m.text"
-              :owner="m.id === user.id"
-            />
+          <div class="chat-body" @scroll="handleScroll">
+            <div class="chat">
+              <Message
+                v-for="(m, index) in messages"
+                :key="index"
+                :name="m.name"
+                :text="m.text"
+                :owner="m.id === user.id"
+              />
+            </div>
           </div>
+        </b-card>
+        <div class="input-footer">
+          <ChatForm />
         </div>
-      </b-card>
-      <div class="input-footer">
-        <ChatForm />
-      </div>
-    </b-col>
-  </b-row>
+      </b-col>
+    </b-row>
+  </div>
 </template>
 
 <script>
 import { mapState, mapMutations } from 'vuex'
 export default {
-  data() {
-    return {}
-  },
   middleware: ['chat'],
   head() {
     return {
@@ -40,32 +40,43 @@ export default {
     }
   },
   computed: {
-    ...mapState(['user', 'messages']),
+    ...mapState(['user', 'messages', 'loading']),
+    ...mapMutations(['setLoading']),
   },
 
   mounted() {
-    this.$socket.on('loadMessages', (loadedMessages) => {
-      this.setMessages(loadedMessages)
-    })
-    console.log(this.user, 'User data')
-    console.log(this.messages, 'messages state')
-
-    const savedUser = localStorage.getItem('user')
-
-    // this.$socket.emit('userJoined', JSON.parse(savedUser), (response) => {
-    //   if (response && response.userId) {
-    //     this.setUser({ ...JSON.parse(savedUser), id: response.userId })
-    //   }
-    // })
-    // ПРИ ОБНОВЛЕНИИ СТРАНИЦЫ ОСТАВЛЯТЬ ДАННЫЕ ..
-    const savedMessages = localStorage.getItem('messages')
-
+    const savedUserString = localStorage.getItem('user')
+    const savedUser = JSON.parse(savedUserString)
     if (savedUser) {
-      this.setUser(JSON.parse(savedUser))
+      this.$store.commit('setUser', savedUser) // Использование мутации для установки пользователя
+      this.$socket.emit('userJoined', savedUser, (data) => {
+        if (typeof data !== 'string') {
+          const updatedUser = { ...savedUser, id: data.userId }
+          this.$store.commit('setUser', updatedUser)
+          localStorage.setItem('user', JSON.stringify(updatedUser))
+        }
+      })
     }
+
+    const savedMessages = localStorage.getItem('messages')
     if (savedMessages) {
-      this.setMessages(JSON.parse(savedMessages))
+      this.$store.commit('setMessages', JSON.parse(savedMessages))
     }
+
+    this.$store.commit('setLoading', false)
+
+    this.$socket.on('loadMessages', (loadedMessages) => {
+      // this.setMessages(loadedMessages)
+      this.$store.commit('setMessages', loadedMessages)
+    })
+
+    this.$socket.on('newMessage', (message) => {
+      this.$store.commit('SOCKET_newMessage', message)
+    })
+
+    this.$socket.on('updateUsers', (users) => {
+      this.$store.commit('SOCKET_updateUsers', users)
+    })
   },
 
   watch: {
@@ -97,11 +108,7 @@ export default {
     handleScroll() {
       const chatBody = this.$refs.chatTitle
       const scrollTop = chatBody.scrollTop
-      if (scrollTop > 0) {
-        chatBody.style.padding = '0.5rem'
-      } else {
-        chatBody.style.padding = '1rem'
-      }
+      chatBody.style.padding = scrollTop > 0 ? '0.5rem' : '1rem'
     },
   },
 }
@@ -148,13 +155,12 @@ export default {
 .arrow1 :hower {
   color: gray;
 }
-
-.message {
-  margin: 5px 0;
-}
-
-.text-right {
-  text-align: right;
+.loading-screen {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 1.5rem;
 }
 </style>
 ./chat.vue
