@@ -1,7 +1,7 @@
 <template>
   <div class="center-card">
     <b-card class="custom-card">
-      <b-card-title class="title-card"> Nuxt chat </b-card-title>
+      <b-card-title class="title-card"> Nuxt Chat </b-card-title>
       <div class="form-input">
         <b-form @submit.prevent="onSubmit" v-if="show">
           <b-form-group id="input-group-2">
@@ -27,13 +27,14 @@
             <b-button type="submit">Войти</b-button>
           </div>
         </b-form>
+        <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
       </div>
     </b-card>
   </div>
 </template>
 
 <script>
-import { mapMutations, mapState } from 'vuex'
+// import { mapMutations, mapState } from 'vuex'
 
 export default {
   head: {
@@ -46,6 +47,7 @@ export default {
         room: '',
       },
       show: true,
+      errorMessage: '',
     }
   },
 
@@ -65,7 +67,18 @@ export default {
         console.error('Введите имя и комнату')
         return
       }
-
+      this.checkUserName(this.user.name, this.user.room)
+    },
+    checkUserName(name, room) {
+      this.$socket.emit('checkUserName', { name, room }, (isNameTaken) => {
+        if (isNameTaken) {
+          this.errorMessage = 'Имя пользователя уже занято в этой комнате'
+          return
+        }
+        this.connectUser()
+      })
+    },
+    connectUser() {
       if (this.$socket.connected) {
         this.sendUserJoined()
       } else {
@@ -74,7 +87,6 @@ export default {
         })
       }
     },
-
     sendUserJoined() {
       this.$socket.emit('userJoined', this.user, (data) => {
         if (typeof data === 'string') {
@@ -126,9 +138,11 @@ export default {
   border: 1px solid #898989 !important;
   box-shadow: none !important;
 }
-/* .form-control:focus {
-  background-color: transparent !important;
-  box-shadow: none !important;
-  color: white;
-} */
+
+.error-message {
+  color: red;
+  margin-top: 10px;
+  font-size: 0.8rem;
+  text-align: center;
+}
 </style>

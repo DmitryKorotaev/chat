@@ -20,7 +20,13 @@ const m = (name, text, id) => ({
 
 io.on('connection', (socket) => {
   socket.emit('loadMessages', messages)
-
+  //валидация на совпадение имен
+  socket.on('checkUserName', (data, cb) => {
+    const { name, room } = data
+    const usersInRoom = users.getByRoom(room)
+    const isNameTaken = usersInRoom.some((user) => user.name === name)
+    cb(isNameTaken)
+  })
   //валидация
   socket.on('userJoined', (data, cb) => {
     if (!data.name || !data.room) {
