@@ -28,6 +28,7 @@ export const mutations = {
   },
   SOCKET_updateUsers(state, users) {
     state.users = users
+    console.log(users, 'users')
   },
   setLoading(state, loading) {
     state.loading = loading
