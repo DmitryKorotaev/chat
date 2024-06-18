@@ -34,7 +34,7 @@
 </template>
 
 <script>
-// import { mapMutations, mapState } from 'vuex'
+import { mapMutations, mapState } from 'vuex'
 
 export default {
   head: {
@@ -50,8 +50,12 @@ export default {
       errorMessage: '',
     }
   },
+  computed: {
+    ...mapState(['users']),
+  },
 
   mounted() {
+    console.log(this.users, 'users')
     const savedUser = localStorage.getItem('user')
     if (savedUser) {
       this.$store.commit('setUser', JSON.parse(savedUser))
