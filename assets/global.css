@@ -28,3 +28,6 @@ main {
   box-shadow: none !important;
   color: white;
 }
+.card-body {
+  padding: 1rem 0;
+}

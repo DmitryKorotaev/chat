@@ -2,12 +2,12 @@
   <div v-if="loading" class="loading-screen">Loading...</div>
   <div v-else>
     <b-row>
-      <Room />
-      <b-col sm="12" md="8" lg="8">
+      <Room ref="roomComponent" />
+      <b-col sm="12" md="9" lg="9">
         <b-card class="chat-card">
           <b-card-title class="chat-title" ref="chatTitle">
             <b-icon icon="arrow-left" class="arrow1" @click="exit"> </b-icon>
-            Чат комнаты {{ user.room }}
+            Чат комната {{ user.room }}
           </b-card-title>
 
           <div class="chat-body" @scroll="handleScroll">
@@ -41,13 +41,12 @@ export default {
   },
   computed: {
     ...mapState(['user', 'messages', 'loading']),
-    ...mapMutations(['setLoading']),
   },
 
   mounted() {
     const savedUserString = localStorage.getItem('user')
-    const savedUser = JSON.parse(savedUserString)
-    if (savedUser) {
+    if (savedUserString) {
+      const savedUser = JSON.parse(savedUserString)
       this.$store.commit('setUser', savedUser) // Использование мутации для установки пользователя
       this.$socket.emit('userJoined', savedUser, (data) => {
         if (typeof data !== 'string') {
@@ -66,7 +65,6 @@ export default {
     this.$store.commit('setLoading', false)
 
     this.$socket.on('loadMessages', (loadedMessages) => {
-      // this.setMessages(loadedMessages)
       this.$store.commit('setMessages', loadedMessages)
     })
 
@@ -108,6 +106,7 @@ export default {
     handleScroll() {
       const chatBody = this.$refs.chatTitle
       const scrollTop = chatBody.scrollTop
+      this.$refs.roomComponent.scrollToPosition(scrollTop)
       chatBody.style.padding = scrollTop > 0 ? '0.5rem' : '1rem'
     },
   },
@@ -115,7 +114,12 @@ export default {
 </script>
 
 <style scoped>
+.row {
+  margin-right: 0;
+  margin-left: 0;
+}
 .chat-title {
+  background-color: #19191b;
   color: white;
   font-size: 1.3rem;
   position: sticky;

@@ -1,7 +1,7 @@
 <template>
   <div class="center-card">
     <b-card class="custom-card">
-      <b-card-title class="title-card"> Nuxt чат </b-card-title>
+      <b-card-title class="title-card"> Nuxt chat </b-card-title>
       <div class="form-input">
         <b-form @submit.prevent="onSubmit" v-if="show">
           <b-form-group id="input-group-2">
@@ -66,14 +66,6 @@ export default {
         return
       }
 
-      if (this.$socket.connected) {
-        this.sendUserJoined()
-      } else {
-        this.$socket.once('connect', () => {
-          this.sendUserJoined()
-        })
-      }
-      console.log('onSubmit')
       if (this.$socket.connected) {
         this.sendUserJoined()
       } else {

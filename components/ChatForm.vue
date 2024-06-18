@@ -6,7 +6,6 @@
         placeholder="Введите сообщение"
         outline
         class="custom-input"
-        required
       ></b-form-input>
       <b-input-group-append>
         <b-button type="submit" class="svg-button">
@@ -24,6 +23,10 @@ export default {
   }),
   methods: {
     send() {
+      if (this.text.trim() === '') {
+        console.log('Сообщение пустое')
+        return
+      }
       console.log('createMessage')
       this.$socket.emit(
         'createMessage',
@@ -41,7 +44,6 @@ export default {
           }
         }
       )
-      // остановился на предотвращении ошибки отправки пустого сообщений
     },
   },
 }

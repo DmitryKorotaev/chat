@@ -9,7 +9,9 @@ const users = new Users()
 const app = express()
 const server = http.createServer(app)
 const io = new Server(server)
+
 const messages = []
+
 const m = (name, text, id) => ({
   name,
   text,
@@ -17,7 +19,6 @@ const m = (name, text, id) => ({
 })
 
 io.on('connection', (socket) => {
-  // console.log('IO connected')
   socket.emit('loadMessages', messages)
 
   //валидация
@@ -29,6 +30,7 @@ io.on('connection', (socket) => {
 
     let userId = data.id || socket.id
     const user = users.get(userId)
+
     if (user) {
       // Пользователь уже существует, просто обновляем его данные
       user.name = data.name
@@ -55,21 +57,16 @@ io.on('connection', (socket) => {
 
   socket.on('createMessage', (data, cb) => {
     if (!data.text) {
-      return cd('the text cannot be empty')
+      return cb('the text cannot be empty')
     }
     // если пользователь найден, код отправляет новое сообщение в комнату пользователя
     const user = users.get(data.id)
     if (user) {
       const message = m(user.name, data.text, data.id)
       messages.push(message)
-
-      io.to(user.room).emit('newMessage', m(user.name, data.text, data.id))
+      io.to(user.room).emit('newMessage', message)
     }
     cb({ status: 'OK', message: 'Message received and processed' })
-  })
-
-  socket.on('error', (error) => {
-    console.error('Socket error:', error)
   })
 
   socket.on('userLeft', (id, cb) => {
@@ -77,7 +74,7 @@ io.on('connection', (socket) => {
     if (user) {
       io.to(user.room).emit(
         'newMessage',
-        m('admin', `Пользователь ${user.name} вышел.`)
+        m('admin', `Пользователь ${user.name} вышел`)
       )
     }
     cb()
@@ -89,10 +86,14 @@ io.on('connection', (socket) => {
       io.to(user.room).emit('updateUsers', users.getByRoom(user.room))
       io.to(user.room).emit(
         'newMessage',
-        m('admin', `Пользователь ${user.name} вышел.`)
+        m('admin', `Пользователь ${user.name} вышел`)
       )
     }
     console.log('Client disconnected', socket.id)
+
+    socket.on('error', (error) => {
+      console.error('Socket error:', error)
+    })
   })
 })
 
